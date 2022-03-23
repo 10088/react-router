@@ -4,7 +4,7 @@ import {
   GestureResponderEvent,
   Linking,
   TouchableHighlight,
-  TouchableHighlightProps
+  TouchableHighlightProps,
 } from "react-native";
 import {
   MemoryRouter,
@@ -19,6 +19,8 @@ import {
   generatePath,
   matchRoutes,
   matchPath,
+  createPath,
+  parsePath,
   resolvePath,
   renderMatches,
   useHref,
@@ -31,7 +33,7 @@ import {
   useParams,
   useResolvedPath,
   useRoutes,
-  useOutletContext
+  useOutletContext,
 } from "react-router";
 import type { To } from "react-router";
 
@@ -53,6 +55,8 @@ export {
   generatePath,
   matchRoutes,
   matchPath,
+  createPath,
+  parsePath,
   resolvePath,
   renderMatches,
   useHref,
@@ -65,10 +69,12 @@ export {
   useParams,
   useResolvedPath,
   useRoutes,
-  useOutletContext
+  useOutletContext,
 };
 
+export { NavigationType } from "react-router";
 export type {
+  Hash,
   IndexRouteProps,
   LayoutRouteProps,
   Location,
@@ -76,7 +82,6 @@ export type {
   NavigateFunction,
   NavigateOptions,
   NavigateProps,
-  NavigationType,
   Navigator,
   OutletProps,
   Params,
@@ -88,7 +93,9 @@ export type {
   RouteProps,
   RouterProps,
   RoutesProps,
-  To
+  Pathname,
+  Search,
+  To,
 } from "react-router";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +115,7 @@ export type {
 export {
   UNSAFE_NavigationContext,
   UNSAFE_LocationContext,
-  UNSAFE_RouteContext
+  UNSAFE_RouteContext,
 } from "react-router";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -169,7 +176,7 @@ export function useLinkPressHandler(
   to: To,
   {
     replace,
-    state
+    state,
   }: {
     replace?: boolean;
     state?: any;
@@ -224,7 +231,7 @@ export function useDeepLinking() {
   React.useEffect(() => {
     let current = true;
 
-    Linking.getInitialURL().then(url => {
+    Linking.getInitialURL().then((url) => {
       if (current) {
         if (url) navigate(trimScheme(url));
       }
@@ -268,7 +275,7 @@ export function useSearchParams(
 
     for (let key of defaultSearchParamsRef.current.keys()) {
       if (!searchParams.has(key)) {
-        defaultSearchParamsRef.current.getAll(key).forEach(value => {
+        defaultSearchParamsRef.current.getAll(key).forEach((value) => {
           searchParams.append(key, value);
         });
       }
@@ -333,7 +340,7 @@ export function createSearchParams(
       : Object.keys(init).reduce((memo, key) => {
           let value = init[key];
           return memo.concat(
-            Array.isArray(value) ? value.map(v => [key, v]) : [[key, value]]
+            Array.isArray(value) ? value.map((v) => [key, v]) : [[key, value]]
           );
         }, [] as ParamKeyValuePair[])
   );

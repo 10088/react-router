@@ -214,7 +214,7 @@ import { create } from "react-test-renderer";
 import {
   MemoryRouter,
   Routes,
-  Route
+  Route,
 } from "react-router-dom";
 
 describe("My app", () => {
@@ -313,7 +313,7 @@ function UsersIndexPage({ users }) {
     <div>
       <h1>Users</h1>
       <ul>
-        {users.map(user => (
+        {users.map((user) => (
           <li key={user.id}>
             <Link to={user.id}>{user.name}</Link>
           </li>
@@ -481,14 +481,14 @@ const NavLink = React.forwardRef(
         className={({ isActive }) =>
           [
             props.className,
-            isActive ? activeClassName : null
+            isActive ? activeClassName : null,
           ]
             .filter(Boolean)
             .join(" ")
         }
         style={({ isActive }) => ({
           ...props.style,
-          ...(isActive ? activeStyle : null)
+          ...(isActive ? activeStyle : null),
         })}
       />
     );
@@ -554,7 +554,9 @@ class LoginForm extends React.Component {
         {user && (
           <Navigate to="/dashboard" replace={true} />
         )}
-        <form onSubmit={event => this.handleSubmit(event)}>
+        <form
+          onSubmit={(event) => this.handleSubmit(event)}
+        >
           <input type="text" name="username" />
           <input type="password" name="password" />
         </form>
@@ -634,9 +636,11 @@ function Parent() {
 ```
 
 ```tsx lines=[2]
+import { useOutletContext } from "react-router-dom";
+
 function Child() {
   const [count, setCount] = useOutletContext();
-  const increment = () => setCount(c => c + 1);
+  const increment = () => setCount((c) => c + 1);
   return <button onClick={increment}>{count}</button>;
 }
 ```
@@ -646,6 +650,7 @@ If you're using TypeScript, we recommend the parent component provide a custom h
 ```tsx filename=src/routes/dashboard.tsx lines=[12,17-19]
 import * as React from "react";
 import type { User } from "./types";
+import { Outlet, useOutletContext } from "react-router-dom";
 
 type ContextType = { user: User | null };
 
@@ -655,7 +660,7 @@ export default function Dashboard() {
   return (
     <div>
       <h1>Dashboard</h1>
-      <Outlet context={user} />
+      <Outlet context={{ user }} />
     </div>
   );
 }
@@ -669,7 +674,7 @@ export function useUser() {
 import { useUser } from "../dashboard";
 
 export default function DashboardMessages() {
-  const user = useUser();
+  const { user } = useUser();
   return (
     <div>
       <h2>Messages</h2>
@@ -733,7 +738,7 @@ declare function Route(
 interface RouteProps {
   caseSensitive?: boolean;
   children?: React.ReactNode;
-  element?: React.ReactElement | null;
+  element?: React.ReactNode | null;
   index?: boolean;
   path?: string;
 }
@@ -859,7 +864,7 @@ declare function generatePath(
 generatePath("/users/:id", { id: 42 }); // "/users/42"
 generatePath("/files/:type/*", {
   type: "img",
-  "*": "cat.jpg"
+  "*": "cat.jpg",
 }); // "/files/img/cat.jpg"
 ```
 
@@ -1016,7 +1021,7 @@ The `useLinkClickHandler` hook returns a click event handler to for navigation w
 ```tsx
 import {
   useHref,
-  useLinkClickHandler
+  useLinkClickHandler,
 } from "react-router-dom";
 
 const StyledLink = styled("a", { color: "fuchsia" });
@@ -1037,14 +1042,14 @@ const Link = React.forwardRef(
     let handleClick = useLinkClickHandler(to, {
       replace,
       state,
-      target
+      target,
     });
 
     return (
       <StyledLink
         {...rest}
         href={href}
-        onClick={event => {
+        onClick={(event) => {
           onClick?.(event);
           if (!event.defaultPrevented) {
             handleClick(event);
@@ -1090,13 +1095,13 @@ function Link({
 }) {
   let handlePress = useLinkPressHandler(to, {
     replace,
-    state
+    state,
   });
 
   return (
     <TouchableHighlight
       {...rest}
-      onPress={event => {
+      onPress={(event) => {
         onPress?.(event);
         if (!event.defaultPrevented) {
           handlePress(event);
@@ -1326,12 +1331,12 @@ function App() {
       children: [
         {
           path: "messages",
-          element: <DashboardMessages />
+          element: <DashboardMessages />,
         },
-        { path: "tasks", element: <DashboardTasks /> }
-      ]
+        { path: "tasks", element: <DashboardTasks /> },
+      ],
     },
-    { path: "team", element: <AboutPage /> }
+    { path: "team", element: <AboutPage /> },
   ]);
 
   return element;

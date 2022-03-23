@@ -1,6 +1,6 @@
 import * as React from "react";
 import type { BrowserHistory, HashHistory, History } from "history";
-import { createBrowserHistory, createHashHistory, createPath } from "history";
+import { createBrowserHistory, createHashHistory } from "history";
 import {
   MemoryRouter,
   Navigate,
@@ -12,6 +12,8 @@ import {
   generatePath,
   matchRoutes,
   matchPath,
+  createPath,
+  parsePath,
   resolvePath,
   renderMatches,
   useHref,
@@ -24,7 +26,7 @@ import {
   useParams,
   useResolvedPath,
   useRoutes,
-  useOutletContext
+  useOutletContext,
 } from "react-router";
 import type { To } from "react-router";
 
@@ -61,6 +63,8 @@ export {
   generatePath,
   matchRoutes,
   matchPath,
+  createPath,
+  parsePath,
   renderMatches,
   resolvePath,
   useHref,
@@ -73,14 +77,15 @@ export {
   useParams,
   useResolvedPath,
   useRoutes,
-  useOutletContext
+  useOutletContext,
 };
 
+export { NavigationType } from "react-router";
 export type {
+  Hash,
   Location,
   Path,
   To,
-  NavigationType,
   MemoryRouterProps,
   NavigateFunction,
   NavigateOptions,
@@ -96,7 +101,9 @@ export type {
   LayoutRouteProps,
   IndexRouteProps,
   RouterProps,
-  RoutesProps
+  Pathname,
+  Search,
+  RoutesProps,
 } from "react-router";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +123,7 @@ export type {
 export {
   UNSAFE_NavigationContext,
   UNSAFE_LocationContext,
-  UNSAFE_RouteContext
+  UNSAFE_RouteContext,
 } from "react-router";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +142,7 @@ export interface BrowserRouterProps {
 export function BrowserRouter({
   basename,
   children,
-  window
+  window,
 }: BrowserRouterProps) {
   let historyRef = React.useRef<BrowserHistory>();
   if (historyRef.current == null) {
@@ -145,7 +152,7 @@ export function BrowserRouter({
   let history = historyRef.current;
   let [state, setState] = React.useState({
     action: history.action,
-    location: history.location
+    location: history.location,
   });
 
   React.useLayoutEffect(() => history.listen(setState), [history]);
@@ -180,7 +187,7 @@ export function HashRouter({ basename, children, window }: HashRouterProps) {
   let history = historyRef.current;
   let [state, setState] = React.useState({
     action: history.action,
-    location: history.location
+    location: history.location,
   });
 
   React.useLayoutEffect(() => history.listen(setState), [history]);
@@ -211,7 +218,7 @@ export interface HistoryRouterProps {
 function HistoryRouter({ basename, children, history }: HistoryRouterProps) {
   const [state, setState] = React.useState({
     action: history.action,
-    location: history.location
+    location: history.location,
   });
 
   React.useLayoutEffect(() => history.listen(setState), [history]);
@@ -379,7 +386,7 @@ export function useLinkClickHandler<E extends Element = HTMLAnchorElement>(
   {
     target,
     replace: replaceProp,
-    state
+    state,
   }: {
     target?: React.HTMLAttributeAnchorTarget;
     replace?: boolean;
@@ -436,7 +443,7 @@ export function useSearchParams(defaultInit?: URLSearchParamsInit) {
 
     for (let key of defaultSearchParamsRef.current.keys()) {
       if (!searchParams.has(key)) {
-        defaultSearchParamsRef.current.getAll(key).forEach(value => {
+        defaultSearchParamsRef.current.getAll(key).forEach((value) => {
           searchParams.append(key, value);
         });
       }
@@ -499,7 +506,7 @@ export function createSearchParams(
       : Object.keys(init).reduce((memo, key) => {
           let value = init[key];
           return memo.concat(
-            Array.isArray(value) ? value.map(v => [key, v]) : [[key, value]]
+            Array.isArray(value) ? value.map((v) => [key, v]) : [[key, value]]
           );
         }, [] as ParamKeyValuePair[])
   );

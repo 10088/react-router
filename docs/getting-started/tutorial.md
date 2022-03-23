@@ -124,7 +124,7 @@ export default function App() {
       <nav
         style={{
           borderBottom: "solid 1px",
-          paddingBottom: "1rem"
+          paddingBottom: "1rem",
         }}
       >
         <Link to="/invoices">Invoices</Link> |{" "}
@@ -172,12 +172,12 @@ export default function Invoices() {
 
 Finally, let's teach React Router how to render our app at different URLs by creating our first "Route Config" inside of `main.jsx` or `index.js`.
 
-```tsx lines=[2,4-5,13-19] filename=src/main.jsx
+```tsx lines=[2,4-5,8-9,13-19] filename=src/main.jsx
 import { render } from "react-dom";
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
 } from "react-router-dom";
 import App from "./App";
 import Expenses from "./routes/expenses";
@@ -216,7 +216,7 @@ import { render } from "react-dom";
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
 } from "react-router-dom";
 import App from "./App";
 import Expenses from "./routes/expenses";
@@ -253,7 +253,7 @@ export default function App() {
       <nav
         style={{
           borderBottom: "solid 1px",
-          paddingBottom: "1rem"
+          paddingBottom: "1rem",
         }}
       >
         <Link to="/invoices">Invoices</Link> |{" "}
@@ -281,32 +281,32 @@ let invoices = [
     name: "Santa Monica",
     number: 1995,
     amount: "$10,800",
-    due: "12/05/1995"
+    due: "12/05/1995",
   },
   {
     name: "Stankonia",
     number: 2000,
     amount: "$8,000",
-    due: "10/31/2000"
+    due: "10/31/2000",
   },
   {
     name: "Ocean Avenue",
     number: 2003,
     amount: "$9,500",
-    due: "07/22/2003"
+    due: "07/22/2003",
   },
   {
     name: "Tubthumper",
     number: 1997,
     amount: "$14,000",
-    due: "09/01/1997"
+    due: "09/01/1997",
   },
   {
     name: "Wide Open Spaces",
     number: 1998,
     amount: "$4,600",
-    due: "01/27/1998"
-  }
+    due: "01/27/1998",
+  },
 ];
 
 export function getInvoices() {
@@ -327,10 +327,10 @@ export default function Invoices() {
       <nav
         style={{
           borderRight: "solid 1px",
-          padding: "1rem"
+          padding: "1rem",
         }}
       >
-        {invoices.map(invoice => (
+        {invoices.map((invoice) => (
           <Link
             style={{ display: "block", margin: "1rem 0" }}
             to={`/invoices/${invoice.number}`}
@@ -429,10 +429,10 @@ export default function Invoices() {
       <nav
         style={{
           borderRight: "solid 1px",
-          padding: "1rem"
+          padding: "1rem",
         }}
       >
-        {invoices.map(invoice => (
+        {invoices.map((invoice) => (
           <Link
             style={{ display: "block", margin: "1rem 0" }}
             to={`/invoices/${invoice.number}`}
@@ -476,7 +476,7 @@ export function getInvoices() {
 
 export function getInvoice(number) {
   return invoices.find(
-    invoice => invoice.number === number
+    (invoice) => invoice.number === number
   );
 }
 ```
@@ -563,16 +563,16 @@ export default function Invoices() {
       <nav
         style={{
           borderRight: "solid 1px",
-          padding: "1rem"
+          padding: "1rem",
         }}
       >
-        {invoices.map(invoice => (
+        {invoices.map((invoice) => (
           <NavLink
             style={({ isActive }) => {
               return {
                 display: "block",
                 margin: "1rem 0",
-                color: isActive ? "red" : ""
+                color: isActive ? "red" : "",
               };
             }}
             to={`/invoices/${invoice.number}`}
@@ -616,7 +616,7 @@ Let's see it in action by adding a little filter on the invoices nav list.
 import {
   NavLink,
   Outlet,
-  useSearchParams
+  useSearchParams,
 } from "react-router-dom";
 import { getInvoices } from "../data";
 
@@ -629,12 +629,12 @@ export default function Invoices() {
       <nav
         style={{
           borderRight: "solid 1px",
-          padding: "1rem"
+          padding: "1rem",
         }}
       >
         <input
           value={searchParams.get("filter") || ""}
-          onChange={event => {
+          onChange={(event) => {
             let filter = event.target.value;
             if (filter) {
               setSearchParams({ filter });
@@ -644,18 +644,18 @@ export default function Invoices() {
           }}
         />
         {invoices
-          .filter(invoice => {
+          .filter((invoice) => {
             let filter = searchParams.get("filter");
             if (!filter) return true;
             let name = invoice.name.toLowerCase();
             return name.startsWith(filter.toLowerCase());
           })
-          .map(invoice => (
+          .map((invoice) => (
             <NavLink
               style={({ isActive }) => ({
                 display: "block",
                 margin: "1rem 0",
-                color: isActive ? "red" : ""
+                color: isActive ? "red" : "",
               })}
               to={`/invoices/${invoice.number}`}
               key={invoice.number}
@@ -799,19 +799,24 @@ First you can copy and paste this function that deletes an invoice from our fake
 ```js filename=src/data.js
 export function deleteInvoice(number) {
   invoices = invoices.filter(
-    invoice => invoice.number !== number
+    (invoice) => invoice.number !== number
   );
 }
 ```
 
 Now let's add the delete button, call our new function, and navigate to the index route:
 
-```js lines=[1-2,5,17-24] filename=src/routes/invoice.jsx
-import { useParams, useNavigate } from "react-router-dom";
+```js lines=[1-6,20-29] filename=src/routes/invoice.jsx
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { getInvoice, deleteInvoice } from "../data";
 
 export default function Invoice() {
   let navigate = useNavigate();
+  let location = useLocation();
   let params = useParams();
   let invoice = getInvoice(parseInt(params.invoiceId, 10));
 
@@ -826,7 +831,7 @@ export default function Invoice() {
         <button
           onClick={() => {
             deleteInvoice(invoice.number);
-            navigate("/invoices");
+            navigate("/invoices" + location.search);
           }}
         >
           Delete
@@ -836,6 +841,8 @@ export default function Invoice() {
   );
 }
 ```
+
+Notice we used `useLocation` again to persist the query string by adding `location.search` to the navigation link.
 
 ## Getting Help
 
