@@ -509,7 +509,10 @@ React Router will create an array of [matches](#match) from these routes and the
 The final concept is rendering. Consider that the entry to your app looks like this:
 
 ```jsx
-ReactDOM.render(
+const root = ReactDOM.createRoot(
+  document.getElementById("root")
+);
+root.render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<App />}>
@@ -526,8 +529,7 @@ ReactDOM.render(
       </Route>
       <Route path="contact-us" element={<Contact />} />
     </Routes>
-  </BrowserRouter>,
-  document.getElementById("root")
+  </BrowserRouter>
 );
 ```
 
@@ -787,7 +789,10 @@ Let's put it all together from the top!
 1. You render your app:
 
    ```jsx
-   ReactDOM.render(
+   const root = ReactDOM.createRoot(
+     document.getElementById("root")
+   );
+   root.render(
      <BrowserRouter>
        <Routes>
          <Route path="/" element={<App />}>
@@ -804,14 +809,13 @@ Let's put it all together from the top!
          </Route>
          <Route path="contact-us" element={<Contact />} />
        </Routes>
-     </BrowserRouter>,
-     document.getElementById("root")
+     </BrowserRouter>
    );
    ```
 
 2. `<BrowserRouter>` creates a [history](#history), puts the initial [location](#location) in to state, and subscribes to the [URL](#url).
 
-3. `<Routes>` recurses it's [child routes](#child-route) to build a [route config](#route-config), matches those routes against the [location](#location), creates some route [matches](#match), and renders the first match's route element.
+3. `<Routes>` recurses its [child routes](#child-route) to build a [route config](#route-config), matches those routes against the [location](#location), creates some route [matches](#match), and renders the first match's route element.
 
 4. You render an [`<Outlet/>`](#outlet) in each [parent route](#parent-route).
 
