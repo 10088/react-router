@@ -66,9 +66,11 @@ createBrowserRouter(
       <Route
         path="dashboard"
         element={<Dashboard />}
-        loader={fetch("/api/dashboard.json", {
-          signal: request.signal,
-        })}
+        loader={({ request }) =>
+          fetch("/api/dashboard.json", {
+            signal: request.signal,
+          })
+        }
       />
       <Route element={<AuthLayout />}>
         <Route
@@ -379,7 +381,7 @@ See:
 
 Instead of waiting for the data for the next page, you can [`defer`][defer] data so the UI flips over to the next screen with placeholder UI immediately while the data loads.
 
-```jsx lines=[12,23-30,32-37,43]
+```jsx lines=[12,22-29,32-35,42]
 <Route
   path="issue/:issueId"
   element={<Issue />}
@@ -393,7 +395,6 @@ Instead of waiting for the data for the next page, you can [`defer`][defer] data
     // defer enables suspense for the un-awaited promises
     return defer({ issue, comments, history });
   }}
-  element={<Issue />}
 />;
 
 function Issue() {
@@ -407,7 +408,9 @@ function Issue() {
         {/* Await manages the deferred data (promise) */}
         <Await resolve={history}>
           {/* this calls back when the data is resolved */}
-          {(history) => <IssueHistory history={history} />}
+          {(resolvedHistory) => (
+            <IssueHistory history={resolvedHistory} />
+          )}
         </Await>
       </Suspense>
 
