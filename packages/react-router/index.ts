@@ -1,6 +1,8 @@
 import type {
   ActionFunction,
   ActionFunctionArgs,
+  Blocker,
+  BlockerFunction,
   Fetcher,
   HydrationState,
   JsonFunction,
@@ -17,6 +19,7 @@ import type {
   Router as RemixRouter,
   ShouldRevalidateFunction,
   To,
+  InitialEntry,
 } from "@remix-run/router";
 import {
   AbortedDeferredError,
@@ -64,8 +67,10 @@ import {
 import type {
   DataRouteMatch,
   DataRouteObject,
+  IndexRouteObject,
   Navigator,
   NavigateOptions,
+  NonIndexRouteObject,
   RouteMatch,
   RouteObject,
   RelativeRoutingType,
@@ -73,13 +78,13 @@ import type {
 import {
   DataRouterContext,
   DataRouterStateContext,
-  DataStaticRouterContext,
   LocationContext,
   NavigationContext,
   RouteContext,
 } from "./lib/context";
 import type { NavigateFunction } from "./lib/hooks";
 import {
+  useBlocker,
   useHref,
   useInRouterContext,
   useLocation,
@@ -112,10 +117,13 @@ export type {
   ActionFunction,
   ActionFunctionArgs,
   AwaitProps,
+  Blocker as unstable_Blocker,
+  BlockerFunction as unstable_BlockerFunction,
   DataRouteMatch,
   DataRouteObject,
   Fetcher,
   Hash,
+  IndexRouteObject,
   IndexRouteProps,
   JsonFunction,
   LayoutRouteProps,
@@ -128,6 +136,7 @@ export type {
   NavigateProps,
   Navigation,
   Navigator,
+  NonIndexRouteObject,
   OutletProps,
   Params,
   ParamParseKey,
@@ -175,6 +184,7 @@ export {
   useActionData,
   useAsyncError,
   useAsyncValue,
+  useBlocker as unstable_useBlocker,
   useHref,
   useInRouterContext,
   useLoaderData,
@@ -199,7 +209,7 @@ export function createMemoryRouter(
   opts?: {
     basename?: string;
     hydrationData?: HydrationState;
-    initialEntries?: string[];
+    initialEntries?: InitialEntry[];
     initialIndex?: number;
   }
 ): RemixRouter {
@@ -234,6 +244,5 @@ export {
   RouteContext as UNSAFE_RouteContext,
   DataRouterContext as UNSAFE_DataRouterContext,
   DataRouterStateContext as UNSAFE_DataRouterStateContext,
-  DataStaticRouterContext as UNSAFE_DataStaticRouterContext,
   enhanceManualRouteObjects as UNSAFE_enhanceManualRouteObjects,
 };

@@ -23,10 +23,13 @@ export type {
   ActionFunction,
   ActionFunctionArgs,
   AwaitProps,
+  unstable_Blocker,
+  unstable_BlockerFunction,
   DataRouteMatch,
   DataRouteObject,
   Fetcher,
   Hash,
+  IndexRouteObject,
   IndexRouteProps,
   JsonFunction,
   LayoutRouteProps,
@@ -39,6 +42,7 @@ export type {
   NavigateProps,
   Navigation,
   Navigator,
+  NonIndexRouteObject,
   OutletProps,
   Params,
   ParamParseKey,
@@ -87,6 +91,7 @@ export {
   useActionData,
   useAsyncError,
   useAsyncValue,
+  unstable_useBlocker,
   useHref,
   useInRouterContext,
   useLoaderData,
@@ -123,7 +128,6 @@ export {
 export {
   UNSAFE_DataRouterContext,
   UNSAFE_DataRouterStateContext,
-  UNSAFE_DataStaticRouterContext,
   UNSAFE_NavigationContext,
   UNSAFE_LocationContext,
   UNSAFE_RouteContext,
@@ -284,16 +288,19 @@ export function useSearchParams(
   defaultInit?: URLSearchParamsInit
 ): [URLSearchParams, SetURLSearchParams] {
   let defaultSearchParamsRef = React.useRef(createSearchParams(defaultInit));
+  let hasSetSearchParamsRef = React.useRef(false);
 
   let location = useLocation();
   let searchParams = React.useMemo(() => {
     let searchParams = createSearchParams(location.search);
 
-    for (let key of defaultSearchParamsRef.current.keys()) {
-      if (!searchParams.has(key)) {
-        defaultSearchParamsRef.current.getAll(key).forEach((value) => {
-          searchParams.append(key, value);
-        });
+    if (!hasSetSearchParamsRef.current) {
+      for (let key of defaultSearchParamsRef.current.keys()) {
+        if (!searchParams.has(key)) {
+          defaultSearchParamsRef.current.getAll(key).forEach((value) => {
+            searchParams.append(key, value);
+          });
+        }
       }
     }
 
@@ -306,6 +313,7 @@ export function useSearchParams(
       const newSearchParams = createSearchParams(
         typeof nextInit === "function" ? nextInit(searchParams) : nextInit
       );
+      hasSetSearchParamsRef.current = true;
       navigate("?" + newSearchParams, navigateOpts);
     },
     [navigate, searchParams]

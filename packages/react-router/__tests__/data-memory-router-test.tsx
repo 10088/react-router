@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import type { FormMethod, Router, RouterInit } from "@remix-run/router";
+import { joinPaths } from "@remix-run/router";
 import type { RouteObject } from "react-router";
 import {
   Await,
@@ -20,6 +21,7 @@ import {
   createMemoryRouter,
   createRoutesFromElements,
   defer,
+  redirect,
   useActionData,
   useAsyncError,
   useAsyncValue,
@@ -154,6 +156,116 @@ describe("<DataMemoryRouter>", () => {
         <h1>
           Heyooo
         </h1>
+      </div>"
+    `);
+  });
+
+  it("prepends basename to loader/action redirects", async () => {
+    let { container } = render(
+      <DataMemoryRouter
+        basename="/my/base/path"
+        initialEntries={["/my/base/path"]}
+      >
+        <Route path="/" element={<Root />}>
+          <Route path="thing" loader={() => redirect("/other")} />
+          <Route path="other" element={<h1>Other</h1>} />
+        </Route>
+      </DataMemoryRouter>
+    );
+
+    function Root() {
+      return (
+        <>
+          <MemoryNavigate to="/thing">Link to thing</MemoryNavigate>
+          <Outlet />
+        </>
+      );
+    }
+
+    expect(getHtml(container)).toMatchInlineSnapshot(`
+      "<div>
+        <a
+          href="/my/base/path/thing"
+        >
+          Link to thing
+        </a>
+      </div>"
+    `);
+
+    fireEvent.click(screen.getByText("Link to thing"));
+    await waitFor(() => screen.getByText("Other"));
+    expect(getHtml(container)).toMatchInlineSnapshot(`
+      "<div>
+        <a
+          href="/my/base/path/thing"
+        >
+          Link to thing
+        </a>
+        <h1>
+          Other
+        </h1>
+      </div>"
+    `);
+  });
+
+  it("supports relative routing in loader/action redirects", async () => {
+    let { container } = render(
+      <DataMemoryRouter
+        basename="/my/base/path"
+        initialEntries={["/my/base/path"]}
+      >
+        <Route path="/" element={<Root />}>
+          <Route path="parent" element={<Parent />}>
+            <Route path="child" loader={() => redirect("../other")} />
+            <Route path="other" element={<h2>Other</h2>} />
+          </Route>
+        </Route>
+      </DataMemoryRouter>
+    );
+
+    function Root() {
+      return (
+        <>
+          <MemoryNavigate to="/parent/child">Link to child</MemoryNavigate>
+          <Outlet />
+        </>
+      );
+    }
+
+    function Parent() {
+      return (
+        <>
+          <h1>Parent</h1>
+          <Outlet />
+        </>
+      );
+    }
+
+    expect(getHtml(container)).toMatchInlineSnapshot(`
+      "<div>
+        <a
+          href="/my/base/path/parent/child"
+        >
+          Link to child
+        </a>
+      </div>"
+    `);
+
+    fireEvent.click(screen.getByText("Link to child"));
+    await waitFor(() => screen.getByText("Parent"));
+    expect(getHtml(container)).toMatchInlineSnapshot(`
+      "<div>
+        <a
+          href="/my/base/path/parent/child"
+        >
+          Link to child
+        </a>
+        <h1>
+          Parent
+        </h1>
+        <h2>
+          Other
+        </h2>
       </div>"
     `);
   });
@@ -444,7 +556,7 @@ describe("<DataMemoryRouter>", () => {
       "<div>
         <div>
           <a
-            href=\\"/bar\\"
+            href="/bar"
           >
             Link to Bar
           </a>
@@ -463,7 +575,7 @@ describe("<DataMemoryRouter>", () => {
       "<div>
         <div>
           <a
-            href=\\"/bar\\"
+            href="/bar"
           >
             Link to Bar
           </a>
@@ -483,7 +595,7 @@ describe("<DataMemoryRouter>", () => {
       "<div>
         <div>
           <a
-            href=\\"/bar\\"
+            href="/bar"
           >
             Link to Bar
           </a>
@@ -757,7 +869,7 @@ describe("<DataMemoryRouter>", () => {
     expect(getHtml(container)).toMatchInlineSnapshot(`
       "<div>
         <a
-          href=\\"/bar/child\\"
+          href="/bar/child"
         >
           Link to Child
         </a>
@@ -769,12 +881,12 @@ describe("<DataMemoryRouter>", () => {
 
     spy.mockClear();
     fireEvent.click(screen.getByText("Link to Child"));
-    await new Promise((r) => setImmediate(r));
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(getHtml(container)).toMatchInlineSnapshot(`
       "<div>
         <a
-          href=\\"/bar/child\\"
+          href="/bar/child"
         >
           Link to Child
         </a>
@@ -1104,12 +1216,12 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/foo\\"
+              href="/foo"
             >
               Link to Foo
             </a>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1131,12 +1243,12 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/foo\\"
+              href="/foo"
             >
               Link to Foo
             </a>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1158,12 +1270,12 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/foo\\"
+              href="/foo"
             >
               Link to Foo
             </a>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1242,12 +1354,12 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/foo\\"
+              href="/foo"
             >
               Link to Foo
             </a>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1407,10 +1519,10 @@ describe("<DataMemoryRouter>", () => {
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div>
           <h2>
-            Unhandled Thrown Error!
+            Unexpected Application Error!
           </h2>
           <h3
-            style=\\"font-style: italic;\\"
+            style="font-style: italic;"
           >
             404 Not Found
           </h3>
@@ -1420,13 +1532,13 @@ describe("<DataMemoryRouter>", () => {
           <p>
             You can provide a way better UX than this when your app throws errors by providing your own 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               errorElement
             </code>
              props on 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               &lt;Route&gt;
             </code>
@@ -1489,12 +1601,12 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/foo\\"
+              href="/foo"
             >
               Link to Foo
             </a>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1517,15 +1629,15 @@ describe("<DataMemoryRouter>", () => {
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div>
           <h2>
-            Unhandled Thrown Error!
+            Unexpected Application Error!
           </h2>
           <h3
-            style=\\"font-style: italic;\\"
+            style="font-style: italic;"
           >
             Kaboom!
           </h3>
           <pre
-            style=\\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\\"
+            style="padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);"
           >
             FAKE STACK TRACE
           </pre>
@@ -1535,13 +1647,13 @@ describe("<DataMemoryRouter>", () => {
           <p>
             You can provide a way better UX than this when your app throws errors by providing your own 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               errorElement
             </code>
              props on 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               &lt;Route&gt;
             </code>
@@ -1600,7 +1712,7 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1621,7 +1733,7 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <a
-              href=\\"/bar\\"
+              href="/bar"
             >
               Link to Bar
             </a>
@@ -1762,15 +1874,15 @@ describe("<DataMemoryRouter>", () => {
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div>
           <h2>
-            Unhandled Thrown Error!
+            Unexpected Application Error!
           </h2>
           <h3
-            style=\\"font-style: italic;\\"
+            style="font-style: italic;"
           >
             Kaboom!
           </h3>
           <pre
-            style=\\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\\"
+            style="padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);"
           >
             FAKE STACK TRACE
           </pre>
@@ -1780,13 +1892,13 @@ describe("<DataMemoryRouter>", () => {
           <p>
             You can provide a way better UX than this when your app throws errors by providing your own 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               errorElement
             </code>
              props on 
             <code
-              style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
             >
               &lt;Route&gt;
             </code>
@@ -1946,15 +2058,15 @@ describe("<DataMemoryRouter>", () => {
         "<div>
           <div>
             <h2>
-              Unhandled Thrown Error!
+              Unexpected Application Error!
             </h2>
             <h3
-              style=\\"font-style: italic;\\"
+              style="font-style: italic;"
             >
               Kaboom!
             </h3>
             <pre
-              style=\\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\\"
+              style="padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);"
             >
               FAKE STACK TRACE
             </pre>
@@ -1964,13 +2076,13 @@ describe("<DataMemoryRouter>", () => {
             <p>
               You can provide a way better UX than this when your app throws errors by providing your own 
               <code
-                style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+                style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
               >
                 errorElement
               </code>
                props on 
               <code
-                style=\\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\\"
+                style="padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);"
               >
                 &lt;Route&gt;
               </code>
@@ -1992,6 +2104,178 @@ describe("<DataMemoryRouter>", () => {
           </div>
         </div>"
       `);
+    });
+
+    it("does not allow loaderData usage in self-caught error boundaries", async () => {
+      let errorSpy = jest.spyOn(console, "error");
+
+      let { container } = render(
+        <DataMemoryRouter>
+          <Route path="/" element={<Layout />}>
+            <Route
+              path="foo"
+              loader={() => Promise.reject(new Error("Kaboom!"))}
+              element={<h1>Foo</h1>}
+              errorElement={<FooError />}
+            />
+          </Route>
+        </DataMemoryRouter>
+      );
+
+      function Layout() {
+        let navigation = useNavigation();
+        return (
+          <div>
+            <MemoryNavigate to="/foo">Link to Foo</MemoryNavigate>
+            <p>{navigation.state}</p>
+            <Outlet />
+          </div>
+        );
+      }
+
+      function FooError() {
+        let error = useRouteError();
+        let data = useLoaderData();
+        return (
+          <>
+            <p>
+              Foo Data:{data === undefined ? "undefined" : JSON.stringify(data)}
+            </p>
+            <p>Foo Error:{error.message}</p>
+          </>
+        );
+      }
+
+      expect(getHtml(container)).toMatchInlineSnapshot(`
+        "<div>
+          <div>
+            <a
+              href="/foo"
+            >
+              Link to Foo
+            </a>
+            <p>
+              idle
+            </p>
+          </div>
+        </div>"
+      `);
+
+      fireEvent.click(screen.getByText("Link to Foo"));
+      await waitFor(() => screen.getByText("Foo Error:Kaboom!"));
+      expect(getHtml(container)).toMatchInlineSnapshot(`
+        "<div>
+          <div>
+            <a
+              href="/foo"
+            >
+              Link to Foo
+            </a>
+            <p>
+              idle
+            </p>
+            <p>
+              Foo Data:
+              undefined
+            </p>
+            <p>
+              Foo Error:
+              Kaboom!
+            </p>
+          </div>
+        </div>"
+      `);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "You cannot `useLoaderData` in an errorElement (routeId: 0-0)"
+      );
+      errorSpy.mockRestore();
+    });
+
+    it("does not allow useLoaderData usage in bubbled error boundaries", async () => {
+      let errorSpy = jest.spyOn(console, "error");
+
+      let { container } = render(
+        <DataMemoryRouter
+          hydrationData={{
+            loaderData: {
+              "0": "ROOT",
+            },
+          }}
+        >
+          <Route
+            path="/"
+            element={<Layout />}
+            loader={() => "ROOT"}
+            errorElement={<LayoutError />}
+          >
+            <Route
+              path="foo"
+              loader={() => Promise.reject(new Error("Kaboom!"))}
+              element={<h1>Foo</h1>}
+            />
+          </Route>
+        </DataMemoryRouter>
+      );
+
+      function Layout() {
+        let navigation = useNavigation();
+        return (
+          <div>
+            <MemoryNavigate to="/foo">Link to Foo</MemoryNavigate>
+            <p>{navigation.state}</p>
+            <Outlet />
+          </div>
+        );
+      }
+      function LayoutError() {
+        let data = useLoaderData();
+        let error = useRouteError();
+        return (
+          <>
+            <p>
+              Layout Data:
+              {data === undefined ? "undefined" : JSON.stringify(data)}
+            </p>
+            <p>Layout Error:{error.message}</p>
+          </>
+        );
+      }
+
+      expect(getHtml(container)).toMatchInlineSnapshot(`
+        "<div>
+          <div>
+            <a
+              href="/foo"
+            >
+              Link to Foo
+            </a>
+            <p>
+              idle
+            </p>
+          </div>
+        </div>"
+      `);
+
+      fireEvent.click(screen.getByText("Link to Foo"));
+      await waitFor(() => screen.getByText("Layout Error:Kaboom!"));
+      expect(getHtml(container)).toMatchInlineSnapshot(`
+        "<div>
+          <p>
+            Layout Data:
+            undefined
+          </p>
+          <p>
+            Layout Error:
+            Kaboom!
+          </p>
+        </div>"
+      `);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "You cannot `useLoaderData` in an errorElement (routeId: 0)"
+      );
+      errorSpy.mockRestore();
     });
   });
 
@@ -2107,7 +2391,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2128,7 +2412,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2146,7 +2430,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("LAZY"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2167,7 +2451,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2188,7 +2472,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2206,7 +2490,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("LAZY"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2230,7 +2514,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2251,7 +2535,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2269,7 +2553,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText(/Kaboom!/));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2294,7 +2578,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2315,7 +2599,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2333,7 +2617,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText(/Kaboom!/));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2356,7 +2640,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2377,7 +2661,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2395,7 +2679,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText(/oops is not defined/));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2421,7 +2705,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2442,7 +2726,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2460,7 +2744,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText(/oops is not defined/));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2484,7 +2768,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2505,7 +2789,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2522,7 +2806,7 @@ describe("<DataMemoryRouter>", () => {
       await new Promise((r) => setTimeout(r, 1));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2541,7 +2825,7 @@ describe("<DataMemoryRouter>", () => {
       fireEvent.click(screen.getByText("Link to Bar"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2563,7 +2847,7 @@ describe("<DataMemoryRouter>", () => {
       await waitFor(() => screen.getByText("idle"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2583,7 +2867,7 @@ describe("<DataMemoryRouter>", () => {
       await new Promise((r) => setTimeout(r, 50));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             loading
@@ -2601,11 +2885,11 @@ describe("<DataMemoryRouter>", () => {
       expect(getAwaitRenderCount()).toBe(3);
 
       // complete /baz navigation
-      bazDefer.resolve();
+      bazDefer.resolve(null);
       await waitFor(() => screen.getByText("Baz"));
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2620,7 +2904,7 @@ describe("<DataMemoryRouter>", () => {
       barValueDfd.resolve("LAZY");
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div
-          id=\\"content\\"
+          id="content"
         >
           <p>
             idle
@@ -2672,7 +2956,7 @@ describe("<DataMemoryRouter>", () => {
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div>
           <div
-            id=\\"content\\"
+            id="content"
           >
             Waiting for data...
           </div>
@@ -2684,7 +2968,7 @@ describe("<DataMemoryRouter>", () => {
       expect(getHtml(container)).toMatchInlineSnapshot(`
         "<div>
           <div
-            id=\\"content\\"
+            id="content"
           >
             BAR 1
           </div>
@@ -2816,6 +3100,11 @@ function MemoryNavigate({
   children: React.ReactNode;
 }) {
   let dataRouterContext = React.useContext(DataRouterContext);
+
+  let basename = dataRouterContext?.basename;
+  if (basename && basename !== "/") {
+    to = to === "/" ? basename : joinPaths([basename, to]);
+  }
 
   let onClickHandler = React.useCallback(
     async (event: React.MouseEvent) => {

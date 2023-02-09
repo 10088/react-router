@@ -7,6 +7,8 @@ new: true
 
 This component will emulate the browser's scroll restoration on location changes after loaders have completed to ensure the scroll position is restored to the right spot, even across domains.
 
+<docs-warning>This feature only works if using a data router, see [Picking a Router][pickingarouter]</docs-warning>
+
 You should only render one of these and it's recommended you render it in the root route of your app:
 
 ```tsx [1,7]
@@ -81,13 +83,14 @@ Or you may want to only use the pathname for some paths, and use the normal beha
 
 ## Preventing Scroll Reset
 
-When navigation creates new scroll keys, the scroll position is reset to the top of the page. You can prevent the "scroll to top" behavior from your links:
+When navigation creates new scroll keys, the scroll position is reset to the top of the page. You can prevent the "scroll to top" behavior from your links and forms:
 
 ```tsx
 <Link preventScrollReset={true} />
+<Form preventScrollReset={true} />
 ```
 
-See also: [`<Link preventScrollReset>`][preventscrollreset]
+See also: [`<Link preventScrollReset>`][preventscrollreset], [`<Form preventScrollReset>`][form-preventscrollreset]
 
 ## Scroll Flashing
 
@@ -97,3 +100,5 @@ Server Rendering frameworks can prevent scroll flashing because they can send a 
 
 [remix]: https://remix.run
 [preventscrollreset]: ../components/link#preventscrollreset
+[form-preventscrollreset]: ../components/form#preventscrollreset
+[pickingarouter]: ../routers/picking-a-router

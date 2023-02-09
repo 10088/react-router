@@ -136,6 +136,39 @@ function Product() {
 }
 ```
 
+### Optional Segments
+
+You can make a route segment optional by adding a `?` to the end of the segment.
+
+```tsx
+<Route
+  // this path will match URLs like
+  // - /categories
+  // - /en/categories
+  // - /fr/categories
+  path="/:lang?/categories"
+  // the matching param might be available to the loader
+  loader={({ params }) => {
+    console.log(params["*"]); // "one/two"
+  }}
+  // and the action
+  action={({ params }) => {}}
+  element={<Categories />}
+/>;
+
+// and the element through `useParams`
+function Categories() {
+  let params = useParams();
+  console.log(params.lang);
+}
+```
+
+You can have optional static segments, too:
+
+```jsx
+<Route path="/project/task?/:taskId" />
+```
+
 ### Splats
 
 Also known as "catchall" and "star" segments. If a route path pattern ends with `/*` then it will match any characters following the `/`, including other `/` characters.
@@ -172,9 +205,23 @@ let { org, "*": splat } = params;
 
 ### Layout Routes
 
-<docs-info>TODO: expand with example</docs-info>
-
 Omitting the path makes this route a "layout route". It participates in UI nesting, but it does not add any segments to the URL.
+
+```tsx
+<Route
+  element={
+    <div>
+      <h1>Layout</h1>
+      <Outlet />
+    </div>
+  }
+>
+  <Route path="/" element={<h2>Home</h2>} />
+  <Route path="/about" element={<h2>About</h2>} />
+</Route>
+```
+
+In this example, `<h1>Layout</h1>` will be rendered along with each child route's `element` prop, via the layout route's [Outlet][outlet].
 
 ## `index`
 
@@ -276,9 +323,13 @@ When a route throws an exception while rendering, in a `loader` or in an `action
 
 Please see the [errorElement][errorelement] documentation for more details.
 
+## `handle`
+
+Any application-specific data. Please see the [useMatches][usematches] documentation for details and examples.
+
 [outlet]: ./outlet
 [remix]: https://remix.run
-[indexroute]: ../guides/index-route
+[indexroute]: ../start/concepts#index-routes
 [outlet]: ../components/outlet
 [useloaderdata]: ../hooks/use-loader-data
 [loader]: ./loader
@@ -289,3 +340,4 @@ Please see the [errorElement][errorelement] documentation for more details.
 [usesubmit]: ../hooks/use-submit
 [createroutesfromelements]: ../utils/create-routes-from-elements
 [createbrowserrouter]: ../routers/create-browser-router
+[usematches]: ../hooks/use-matches

@@ -113,7 +113,7 @@ You can `throw` in your action to break out of the current call stack (stop runn
 
 ```tsx [10]
 <Route
-  action={async ({ params }) => {
+  action={async ({ params, request }) => {
     const res = await fetch(
       `/api/properties/${params.id}`,
       {
@@ -130,6 +130,7 @@ You can `throw` in your action to break out of the current call stack (stop runn
 For more details and expanded use cases, read the [errorElement][errorelement] documentation.
 
 [loader]: ./loader
+[pickingarouter]: ../routers/picking-a-router
 [dynamicsegments]: ./route#dynamic-segments
 [formdata]: https://developer.mozilla.org/en-US/docs/Web/API/FormData
 [request]: https://developer.mozilla.org/en-US/docs/Web/API/Request

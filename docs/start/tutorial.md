@@ -5,7 +5,7 @@ order: 2
 
 # Tutorial
 
-Welcome to the tutorial! We'll be building a small, but feature-rich app that let's you keep track of your contacts. We expect it to take between 30-60m if you're following along.
+Welcome to the tutorial! We'll be building a small, but feature-rich app that lets you keep track of your contacts. We expect it to take between 30-60m if you're following along.
 
 <img class="tutorial" src="/_docs/tutorial/15.webp" />
 
@@ -67,13 +67,12 @@ The `main.jsx` file is the entry point. Open it up and we'll put React Router on
 
 👉 **Create and render a [browser router][createbrowserrouter] in `main.jsx`**
 
-```jsx lines=[3-7,10-15,19] filename=src/main.jsx
+```jsx lines=[3-6,9-14,18] filename=src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
   createBrowserRouter,
   RouterProvider,
-  Route,
 } from "react-router-dom";
 import "./index.css";
 
@@ -140,10 +139,10 @@ export default function Root() {
         <nav>
           <ul>
             <li>
-              <a href={`contacts/1`}>Your Name</a>
+              <a href={`/contacts/1`}>Your Name</a>
             </li>
             <li>
-              <a href={`contacts/2`}>Your Friend</a>
+              <a href={`/contacts/2`}>Your Friend</a>
             </li>
           </ul>
         </nav>
@@ -519,7 +518,7 @@ const router = createBrowserRouter([
 
 👉 **Access and render the data**
 
-```jsx filename=src/routes/root.jsx lines=[4,11,19-39]
+```jsx filename=src/routes/root.jsx lines=[4,11,19-40]
 import {
   Outlet,
   Link,
@@ -577,7 +576,7 @@ That's it! React Router will now automatically keep that data in sync with your 
 
 We'll create our first contact in a second, but first let's talk about HTML.
 
-React Router emulates HTML Form navigation as the data mutation primitive, a la web development before the JavaScript cambrian explosion. It gives you the UX capabilities of client rendered apps with the simplicity of the "old school" web model.
+React Router emulates HTML Form navigation as the data mutation primitive, according to web development before the JavaScript cambrian explosion. It gives you the UX capabilities of client rendered apps with the simplicity of the "old school" web model.
 
 While unfamiliar to some web developers, HTML forms actually cause a navigation in the browser, just like clicking a link. The only difference is in the request: links can only change the URL while forms can also change the request method (GET vs POST) and the request body (POST form data).
 
@@ -595,7 +594,7 @@ We'll create new contacts by exporting an `action` in our root route, wiring it 
 
 👉 **Create the action and change `<form>` to `<Form>`**
 
-```jsx filename=src/routes/root.jsx lines=[5,7,9-11,22-24]
+```jsx filename=src/routes/root.jsx lines=[5,7,9-12,24-26]
 import {
   Outlet,
   Link,
@@ -605,7 +604,8 @@ import {
 import { getContacts, createContact } from "../contacts";
 
 export async function action() {
-  await createContact();
+  const contact = await createContact();
+  return { contact };
 }
 
 /* other code */
@@ -754,11 +754,6 @@ Nothing we haven't seen before, feel free to copy/paste:
 
 ```jsx filename=src/routes/edit.jsx
 import { Form, useLoaderData } from "react-router-dom";
-import { getContact } from "../contacts";
-
-export function loader({ params }) {
-  return getContact(params.contactId);
-}
 
 export default function EditContact() {
   const contact = useLoaderData();
@@ -869,7 +864,7 @@ import {
   useLoaderData,
   redirect,
 } from "react-router-dom";
-import { getContact, updateContact } from "../contacts";
+import { updateContact } from "../contacts";
 
 export async function action({ request, params }) {
   const formData = await request.formData();
@@ -883,7 +878,7 @@ export async function action({ request, params }) {
 
 👉 **Wire the action up to the route**
 
-```jsx filename=src/routes/main.jsx lines=[3,23]
+```jsx filename=src/main.jsx lines=[3,23]
 /* existing code */
 import EditContact, {
   action as editAction,
@@ -1251,7 +1246,7 @@ export default function Index() {
       This is a demo for React Router.
       <br />
       Check out{" "}
-      <a href="https://reactrouter.com/">
+      <a href="https://reactrouter.com">
         the docs at reactrouter.com
       </a>
       .
@@ -1303,7 +1298,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-export default function Edit() {
+export default function EditContact() {
   const contact = useLoaderData();
   const navigate = useNavigate();
 
@@ -1835,7 +1830,7 @@ If you click the button now you should see the star _immediately_ change to the 
 
 ## Not Found Data
 
-What happens if the contact we're trying load doesn't exist?
+What happens if the contact we're trying to load doesn't exist?
 
 <img loading="lazy" class="tutorial" src="/_docs/tutorial/25.webp" />
 
@@ -1845,7 +1840,7 @@ Whenever you have an expected error case in a loader or action–like the data n
 
 👉 **Throw a 404 response in the loader**
 
-```jsx filename=src/routes/contact.jsx lines lines=[3-8]
+```jsx filename=src/routes/contact.jsx lines=[3-8]
 export async function loader({ params }) {
   const contact = await getContact(params.contactId);
   if (!contact) {

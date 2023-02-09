@@ -7,6 +7,8 @@ new: true
 
 The Form component is a wrapper around a plain HTML [form][htmlform] that emulates the browser for client side routing and data mutations. It is _not_ a form validation/state management library like you might be used to in the React ecosystem (for that, we recommend the browser's built in [HTML Form Validation][formvalidation] and data validation on your backend server).
 
+<docs-warning>This feature only works if using a data router, see [Picking a Router][pickingarouter]</docs-warning>
+
 ```tsx
 import { Form } from "react-router-dom";
 
@@ -55,7 +57,7 @@ function ProjectsPage() {
   >
     <Route
       path=":projectId"
-      element={<ProjectPage />}
+      element={<ProjectsPage />}
       action={ProjectsPage.action}
     />
   </Route>
@@ -126,20 +128,20 @@ The method will be available on [`request.method`][requestmethod] inside the rou
   path="/projects/:id"
   element={<Project />}
   loader={async ({ params }) => {
-    return fakeLoadProject(params.id)
+    return fakeLoadProject(params.id);
   }}
   action={async ({ request, params }) => {
     switch (request.method) {
-      case "put": {
+      case "PUT": {
         let formData = await request.formData();
         let name = formData.get("projectName");
         return fakeUpdateProject(name);
       }
-      case "delete": {
+      case "DELETE": {
         return fakeDeleteProject(params.id);
       }
-      default {
-        throw new Response("", { status: 405 })
+      default: {
+        throw new Response("", { status: 405 });
       }
     }
   }}
@@ -177,11 +179,15 @@ Instructs the form to replace the current entry in the history stack, instead of
 <Form replace />
 ```
 
-The default behavior is conditional on the form `method`:
+The default behavior is conditional on the form behavior:
 
-- `get` defaults to `false`
-- every other method defaults to `true` if your `action` is successful
-- if your `action` redirects or throws, then it will still push by default
+- `method=get` forms default to `false`
+- submission methods depend on the `formAction` and `action` behavior:
+  - if your `action` throws, then it will default to `false`
+  - if your `action` redirects to the current location, it defaults to `true`
+  - if your `action` redirects elsewhere, it defaults to `false`
+  - if your `formAction` is the current location, it defaults to `true`
+  - otherwise it defaults to `false`
 
 We've found with `get` you often want the user to be able to click "back" to see the previous search results/filters, etc. But with the other methods the default is `true` to avoid the "are you sure you want to resubmit the form?" prompt. Note that even if `replace={false}` React Router _will not_ resubmit the form when the back button is clicked and the method is post, put, patch, or delete.
 
@@ -208,6 +214,16 @@ See also:
 - [`useNavigation`][usenavigation]
 - [`useActionData`][useactiondata]
 - [`useSubmit`][usesubmit]
+
+## `preventScrollReset`
+
+If you are using [`<ScrollRestoration>`][scrollrestoration], this lets you prevent the scroll position from being reset to the top of the window when the form action redirects to a new location.
+
+```tsx
+<Form method="post" preventScrollReset={true} />
+```
+
+See also: [`<Link preventScrollReset>`][link-preventscrollreset]
 
 # Examples
 
@@ -311,3 +327,6 @@ You can access those values from the `request.url`
 [remix]: https://remix.run
 [formvalidation]: https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
 [indexsearchparam]: ../guides/index-search-param
+[pickingarouter]: ../routers/picking-a-router
+[scrollrestoration]: ./scroll-restoration
+[link-preventscrollreset]: ./link#preventscrollreset
